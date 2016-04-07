@@ -1,0 +1,15 @@
+---
+
+drupal:
+  build: .
+  ports:
+    - "8080:80"
+  links:
+    - database
+
+database:
+  environment:
+    MYSQL_ROOT_PASSWORD: root
+    MYSQL_DATABASE: drupal
+  image: mariadb:10
+
