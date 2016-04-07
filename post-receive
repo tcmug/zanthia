@@ -1,0 +1,19 @@
+#!/usr/bin/env python
+#
+# git post-receive function.
+#
+
+import sys
+import os
+import subprocess
+import tarfile
+import string
+import shutil
+import yaml
+
+from Zanthia import BranchContainer
+
+for line in sys.stdin:
+    oc, nc, ti = line.split()
+    branch = BranchContainer(tree_ish=ti, old_commit=oc, new_commit=nc)
+    branch.apply()

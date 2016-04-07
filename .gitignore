@@ -1,0 +1,6 @@
+builds
+local-remote
+local-test
+test
+doc
+*.pyc
