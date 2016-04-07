@@ -3,4 +3,7 @@ local-remote
 local-test
 test
 doc
+builds
+local_remote
+local_test
 *.pyc

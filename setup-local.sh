@@ -2,9 +2,12 @@
 
 pwd=$(pwd)
 
+
 # Make sure the builds directory exists.
 
 mkdir -p builds
+
+export ZANTHIA_BUILDS_DIR=$pwd/builds/
 
 # Initialize local git repository and add the Zanthia post-receive hook.
 
