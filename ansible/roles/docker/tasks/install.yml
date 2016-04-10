@@ -1,0 +1,33 @@
+---
+
+- name: Purge existing Docker repositories
+  shell: apt-get purge lxc-docker* && apt-get purge docker.io*
+
+- name: Update apt cache
+  apt:
+    update_cache=yes
+    cache_valid_time=3600
+
+- name: Install required apt packages
+  apt: name={{ item }} state=present
+  with_items:
+   - apt-transport-https
+   - ca-certificates
+
+- name: Add GPG keys
+  shell: apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
+
+- name: Add docker.io repository
+  apt_repository: repo='deb https://apt.dockerproject.org/repo debian-jessie main' state=present
+
+- name: Update apt cache again
+  apt:
+    update_cache=yes
+
+- name: Verify apt-cache policy for docker-engine
+  shell: apt-cache policy docker-engine
+
+- name: Install required apt packages
+  apt: name={{ item }} state=present
+  with_items:
+   - docker-engine

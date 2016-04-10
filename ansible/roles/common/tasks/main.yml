@@ -73,7 +73,7 @@
   become: yes
   become_user: "{{ gitolite.user }}"
   file:
-    src={{ zanthia.dir }}/post-receive
+    src={{ zanthia.dir }}/src/post-receive
     dest={{ gitolite.dir }}/local/hooks/common/post-receive
     owner="{{ gitolite.user }}"
     group="{{ gitolite.group }}"

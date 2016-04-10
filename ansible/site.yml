@@ -7,4 +7,5 @@
 - hosts: vagrant
   sudo: true
   roles:
-    - role: common
+    #- role: common
+    - role: docker
