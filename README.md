@@ -23,7 +23,7 @@ Clone the testing repository:
 $ git clone git@192.168.123.123:testing
 
 Copy the skeleton project from the src folder and commit it to the repository
-$ cp -rf src/skeleton testing/
+$ cp -rf src/skeleton/* testing/
 $ cd testing
 $ git add .
 $ git commit -m "Initial commit"
@@ -44,4 +44,15 @@ Install the site this database configuration:
 	Database password: dbpass
 	Host: database
 
--- to be continued --
+Once installation has finished, edit the port assignment docker-compose.yml
+from port 8080:80 to 8081:80. Then create a branch, commit and push:
+
+$ git checkout -b test
+$ git add .
+$ git commit -m "Changed to another port"
+$ git push
+
+Zanthia will now clone the master branch containers based on specs in
+manannan.yml. Once the process has finished, a clone of the previous
+installation is available in:
+	http://192.168.123.123:8081

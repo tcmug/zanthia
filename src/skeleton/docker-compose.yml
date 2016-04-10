@@ -12,5 +12,5 @@ database:
     MYSQL_USER: dbuser
     MYSQL_PASSWORD: dbpass
     MYSQL_DATABASE: drupal
+    MYSQL_ROOT_PASSWORD: root
   image: mariadb:10
-
