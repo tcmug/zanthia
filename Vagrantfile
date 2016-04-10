@@ -4,7 +4,7 @@ INSTANCE_NAME     = "zanthia"
 INSTANCE_HOSTNAME = "zanthia.local"
 INSTANCE_MEM      = "1024"
 INSTANCE_CPUS     = "2"
-INSTANCE_IP       = "192.168.33.99"
+INSTANCE_IP       = "192.168.123.123"
 ANSIBLE_INVENTORY = "ansible/inventory"
 
 dir = File.dirname(__FILE__) + '/'
@@ -61,7 +61,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 	########################################
 
 	config.vm.provision "ansible" do |ansible|
-		ansible.verbose = "v"
+		ansible.verbose = "vvvvvv"
 		ansible.inventory_path = ANSIBLE_INVENTORY
 		ansible.extra_vars = "ansible/vagrant.yml"
 		ansible.playbook = "ansible/site.yml"
