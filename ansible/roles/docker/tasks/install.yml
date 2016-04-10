@@ -1,7 +1,10 @@
 ---
 
-- name: Purge existing Docker repositories
-  shell: apt-get purge lxc-docker* && apt-get purge docker.io*
+# - name: Purge existing Docker repositories
+#   apt: name={{ item }} state=absent purge=yes
+#   with_items:
+#    - lxc-docker*
+#    - docker.io*
 
 - name: Update apt cache
   apt:
@@ -31,3 +34,7 @@
   apt: name={{ item }} state=present
   with_items:
    - docker-engine
+   - python-pip
+
+- name: Install docker-compose
+  shell: pip install docker-compose

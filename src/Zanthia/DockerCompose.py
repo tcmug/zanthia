@@ -46,20 +46,21 @@ class DockerComposeDriver(DriverBase):
     #
     def _get_environment_vars(self):
         if not self.env_vars:
-            out = subprocess.check_output([
-                'docker-machine',
-                'env',
-                self.machine_name]
-            )
-            env = string.split(out, '\n')
+            # out = subprocess.check_output([
+            #     'docker-machine',
+            #     'env',
+            #     self.machine_name]
+            # )
+            # env = string.split(out, '\n')
 
-            env = [
-                ln.replace('export ', '').replace('"', '')
-                for ln in env if 'export ' in ln
-            ]
-            env = dict(keyvalue.split('=') for keyvalue in env)
+            # env = [
+            #     ln.replace('export ', '').replace('"', '')
+            #     for ln in env if 'export ' in ln
+            # ]
+            # env = dict(keyvalue.split('=') for keyvalue in env)
 
-            self.env_vars = env.update(os.environ.copy())
+            #self.env_vars = env.update(os.environ.copy())
+            self.env_vars = os.environ.copy()
         return self.env_vars
 
     #

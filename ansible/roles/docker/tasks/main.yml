@@ -5,4 +5,4 @@
   register: docker
 
 - include: install.yml
-  when: docker.stat.exists == false
+ # when: docker.stat.exists == false

@@ -5,4 +5,6 @@ gitolite:
   dir: /var/git
 
 zanthia:
+  user: git
+  group: git
   dir: /vagrant

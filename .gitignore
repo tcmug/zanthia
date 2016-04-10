@@ -6,4 +6,6 @@ doc
 builds
 local_remote
 local_test
+id_rsa
+.vagrant
 *.pyc

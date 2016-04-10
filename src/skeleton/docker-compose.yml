@@ -9,7 +9,8 @@ drupal:
 
 database:
   environment:
-    MYSQL_ROOT_PASSWORD: root
+    MYSQL_USER: dbuser
+    MYSQL_PASSWORD: dbpass
     MYSQL_DATABASE: drupal
   image: mariadb:10
 

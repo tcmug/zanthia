@@ -13,6 +13,7 @@
    - wget
    - unzip
    - curl
+   - python-yaml
 
 - name: Add gitolite group
   group:
@@ -24,6 +25,7 @@
     name="{{ gitolite.user }}"
     comment="Gitolite"
     group="{{ gitolite.group }}"
+    groups=docker
     shell=/bin/bash
     generate_ssh_key=yes
     ssh_key_bits=2048
@@ -50,6 +52,7 @@
   with_items:
     - "{{ gitolite.dir }}/bin"
     - "{{ gitolite.dir }}/local/hooks/common"
+    - "{{ gitolite.dir }}/zanthia"
 
 - name: Install gitolite
   become: yes
@@ -84,3 +87,4 @@
   become_user: "{{ gitolite.user }}"
   shell: bin/gitolite setup
     chdir="{{ gitolite.dir }}"
+

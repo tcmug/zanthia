@@ -7,5 +7,5 @@
 - hosts: vagrant
   sudo: true
   roles:
-    #- role: common
     - role: docker
+    - role: gitolite-zanthia
