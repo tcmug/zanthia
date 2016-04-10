@@ -1,0 +1,86 @@
+---
+# This Playbook runs all the common plays in the deployment
+
+- name: Update apt cache
+  apt:
+    update_cache=yes
+    cache_valid_time=3600
+
+- name: Install required apt packages
+  apt: name={{ item }} state=present
+  with_items:
+   - git
+   - wget
+   - unzip
+   - curl
+
+- name: Add gitolite group
+  group:
+    name="{{ gitolite.group }}"
+    state=present
+
+- name: Add gitolite user
+  user:
+    name="{{ gitolite.user }}"
+    comment="Gitolite"
+    group="{{ gitolite.group }}"
+    shell=/bin/bash
+    generate_ssh_key=yes
+    ssh_key_bits=2048
+    ssh_key_file=.ssh/id_rsa
+    home={{ gitolite.dir }}
+
+- name: Clone gitolite
+  become: yes
+  become_user: "{{ gitolite.user }}"
+  git:
+    repo=git://github.com/sitaramc/gitolite
+    dest="{{ gitolite.dir }}/gitolite"
+    update=no
+
+- name: Create directories
+  become: yes
+  become_user: "{{ gitolite.user }}"
+  file:
+    state=directory
+    path={{ item }}
+    group="{{ gitolite.group }}"
+    owner="{{ gitolite.user }}"
+    # mode=700
+  with_items:
+    - "{{ gitolite.dir }}/bin"
+    - "{{ gitolite.dir }}/local/hooks/common"
+
+- name: Install gitolite
+  become: yes
+  become_user: "{{ gitolite.user }}"
+  shell:
+    "{{ gitolite.dir }}/gitolite/install -to {{ gitolite.dir }}/bin"
+
+- name: Configure gitolite
+  become: yes
+  become_user: "{{ gitolite.user }}"
+  shell: "{{ gitolite.dir }}/bin/gitolite setup -pk {{ gitolite.dir }}/.ssh/id_rsa.pub"
+
+- name: Add LOCAL_CODE source to .gitolite.rc
+  lineinfile:
+    dest="{{ gitolite.dir }}/.gitolite.rc"
+    insertafter="^%RC = \("
+    regexp="    LOCAL_CODE"
+    line="    LOCAL_CODE                =>  \"$ENV{HOME}/local\","
+
+- name: Link Zanthia deployment hook to gitolite
+  become: yes
+  become_user: "{{ gitolite.user }}"
+  file:
+    src={{ zanthia.dir }}/post-receive
+    dest={{ gitolite.dir }}/local/hooks/common/post-receive
+    owner="{{ gitolite.user }}"
+    group="{{ gitolite.group }}"
+    state=link
+
+- name: Run gitolite setup to update any existing repositories
+  become: yes
+  become_user: "{{ gitolite.user }}"
+  shell: bin/gitolite setup
+    chdir="{{ gitolite.dir }}"

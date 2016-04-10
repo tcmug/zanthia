@@ -1,0 +1,8 @@
+
+gitolite:
+  user: git
+  group: git
+  dir: /var/git
+
+zanthia:
+  dir: /vagrant
