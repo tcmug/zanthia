@@ -6,6 +6,7 @@ import tarfile
 import string
 import shutil
 import yaml
+import re
 
 from DockerCompose import DockerComposeDriver
 
@@ -47,18 +48,19 @@ class BranchContainer:
 
         self.tree_ish = tree_ish
         self.driver = None
+        self.repository_name = os.path.splitext(os.path.basename(os.getcwd()))[0]
 
         self.builds_location = os.environ.get(
             'ZANTHIA_BUILDS_DIR',
             '/var/git/zanthia/'
         )
+
         # s.path.dirname(os.path.abspath(__file__)) + "/../builds/")
         self.remote_location = os.getcwd()
 
         if branch_name is None:
 
             self.branch_name = tree_ish.replace("refs/heads/", "")
-            self.safe_branch_name = self.branch_name.replace("/", "__")
 
             # Determine the action to take based on commits.
             if old_commit == '0000000000000000000000000000000000000000':
@@ -74,12 +76,22 @@ class BranchContainer:
         else:
 
             self.branch_name = branch_name
-            self.safe_branch_name = self.branch_name.replace("/", "__")
+
+        self.safe_branch_name = self.clean_name(
+            self.branch_name
+        )
+
+        self.safe_repository_name = self.clean_name(
+            self.repository_name
+        )
 
         self.branch_archive = self.builds_location + \
             self.safe_branch_name + ".tar"
 
-        self.branch_dir = self.builds_location + self.safe_branch_name
+        self.branch_dir = self.builds_location \
+            + self.safe_repository_name \
+            + '-' \
+            + self.safe_branch_name
 
         # But, if the branch does not exist yet, we have to create it.
         if not self.has_data():
@@ -241,6 +253,10 @@ class BranchContainer:
             self.branch_name + ":"
         )
 
+        # Create the target dir if it does not exists.
+        if not os.path.exists(self.branch_dir):
+            os.makedirs(self.branch_dir)
+
         if os.path.isfile(self.branch_archive):
             tar = tarfile.open(self.branch_archive)
             tar.extractall(self.branch_dir)
@@ -263,3 +279,16 @@ class BranchContainer:
     #
     def git(self, *args):
         return subprocess.call(['git'] + list(args))
+
+    #
+    #   Function: clean_name
+    #       Clean up the given string for internal user
+    #
+    #   Parameters:
+    #       str - The string
+    #
+    #   Returns:
+    #       string - Cleaned up string
+    #
+    def clean_name(self, line):
+        return re.sub(r'[^A-Za-z0-9_.-]', '__', line)

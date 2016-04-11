@@ -7,6 +7,7 @@ import string
 import shutil
 import yaml
 import json
+import re
 
 from Driver import DriverBase
 
@@ -33,6 +34,29 @@ class DockerComposeDriver(DriverBase):
         self.name = "Gwydion"
         self.machine_name = 'default'
         self.settings = settings
+
+
+    def get_project_name(self):
+        return self.branch_container.safe_repository_name + \
+            self.branch_container.safe_branch_name
+
+    def get_project_name_branch(self, branch):
+        return self.branch_container.safe_repository_name + \
+            self.branch_container.clean_name(branch)
+
+
+    def get_container_id(self, container, branch=None):
+
+        if branch is None:
+            name = self.branch_container.safe_repository_name + \
+                self.branch_container.safe_branch_name
+        else:
+            name = self.branch_container.safe_repository_name + \
+                branch
+
+        prefix = re.sub(r'[^A-Za-z0-9]', '', name)
+
+        return prefix + "_" + container + "_1"
 
     #
     #   Function: _get_environment_vars
@@ -89,13 +113,12 @@ class DockerComposeDriver(DriverBase):
 
                 self.stop_container(source_branch, container_name)
 
-                source_container_id = source_branch \
-                    + "_" + container_name \
-                    + "_1"
+                source_container_id = self.get_container_id(
+                    container_name,
+                    source_branch
+                )
 
-                target_container_id = self.branch_container.branch_name \
-                    + "_" \
-                    + container_name + "_1"
+                target_container_id = self.get_container_id(container_name)
 
                 self.docker_clone_volumes(
                     source_container_id,
@@ -138,6 +161,7 @@ class DockerComposeDriver(DriverBase):
             self.log('waking up services')
             self.shell_exec([
                 'docker-compose',
+                '-p', self.get_project_name(),
                 'up',
                 '-d'
             ])
@@ -148,7 +172,7 @@ class DockerComposeDriver(DriverBase):
         self.log("Stopping " + branch + " " + name + "...")
         self.shell_exec([
             'docker-compose',
-            '-p' + branch,
+            '-p', self.get_project_name_branch(branch),
             'start',
             name
         ])
@@ -157,7 +181,7 @@ class DockerComposeDriver(DriverBase):
         self.log("Stopping " + branch + " " + name + "...")
         self.shell_exec([
             'docker-compose',
-            '-p' + branch,
+            '-p', self.get_project_name_branch(branch),
             'stop',
             name
         ])
@@ -177,6 +201,7 @@ class DockerComposeDriver(DriverBase):
             self.log('building services')
             self.shell_exec([
                 'docker-compose',
+                '-p', self.get_project_name(),
                 'build'
             ])
             self.start()
@@ -197,6 +222,7 @@ class DockerComposeDriver(DriverBase):
             self.log('putting services to bed')
             self.shell_exec([
                 'docker-compose',
+                '-p', self.get_project_name(),
                 'stop'
             ])
 
@@ -256,6 +282,7 @@ class DockerComposeDriver(DriverBase):
                     "run",
                     "--volumes-from", source_container_id,
                     "-v", "/tmp:/backup",
+                    "--rm",
                     "busybox",
                     "tar", "cvf", "/backup/export.tar", source
                 ], capture=True)
@@ -266,6 +293,7 @@ class DockerComposeDriver(DriverBase):
                     "run",
                     "--volumes-from", target_container_id,
                     "-v", "/tmp:/backup",
+                    "--rm",
                     "busybox",
                     "tar", "xvf", "/backup/export.tar"
                 ], capture=True)
