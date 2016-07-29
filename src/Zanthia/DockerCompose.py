@@ -61,6 +61,7 @@ class DockerComposeDriver(DriverBase):
 
             #self.env_vars = env.update(os.environ.copy())
             self.env_vars = os.environ.copy()
+            #self.env_vars["DOCKER_HOST"] = "unix:///tmp/docker.sock"
         return self.env_vars
 
     #
@@ -133,7 +134,6 @@ class DockerComposeDriver(DriverBase):
     #       def
     #
     def start(self):
-
         if self.branch_container.has_data():
             self.log('waking up services')
             self.shell_exec([
@@ -216,12 +216,17 @@ class DockerComposeDriver(DriverBase):
         prev_dir = os.getcwd()
         sys.stdout.flush()
         os.chdir(self.branch_container.get_directory())
+        params.insert(1, "--host=unix:///tmp/docker.sock")
+        params.insert(0, "sudo")
+        # print " ".join(params)
         if capture:
-            proc = subprocess.Popen(params, env=self._get_environment_vars(), stdout=subprocess.PIPE)
-            retval = proc.stdout.read()
+            proc = subprocess.Popen(params, env=self._get_environment_vars(), stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+            retval, err = proc.communicate()
+            # print(retval)
+            # print(err)
         else:
             retval = subprocess.call(params, env=self._get_environment_vars())
-        os.chdir(prev_dir)
+            os.chdir(prev_dir)
         return retval
 
     #

@@ -9,3 +9,5 @@ local_test
 id_rsa
 .vagrant
 *.pyc
+testing
+git_rsa

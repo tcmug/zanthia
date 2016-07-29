@@ -5,33 +5,28 @@ Zanthia
 ... is a work in progress proof of concept of providing a git remote which
 automatically manages docker containers per branch.
 
-Components:
+Short description:
 
- - Gitolite: git server
- - Ansible: provisioning environment to a server (no 3rd party dependencies Debian 8 Jessie provisioning)
- - Vagrant: local testing environment
+ - A dockerfile which provides provides a git remote
+ - The container controls host machines docker for provisioning
+   configuration within git branches
 
 Demo
 -------------
 
-Spin up the local vagrant box
+At the projects root folder, run:
 ```
-$ vagrant up
-```
-
-Copy the generated git private key from the vagrant box to your local, e.g.
-```
-$ vagrant ssh -c "sudo cp /var/git/.ssh/id_rsa /vagrant/git_rsa"
+docker-compose up
 ```
 
-Add the ssh key to be used:
+After the container is up and running, add the ssh key to be used:
 ```
 $ ssh-add git_rsa
 ```
 
 Clone the testing repository:
 ```
-$ git clone git@192.168.123.123:testing
+$ git clone ssh://gitolite@localhost:2222/testing
 ```
 
 Copy the skeleton project from the src folder and commit it to the repository
@@ -40,13 +35,13 @@ $ cp -rf src/skeleton/* testing/
 $ cd testing
 $ git add .
 $ git commit -m "Initial commit"
-$ git push
+$ git push origin master
 ```
 
 If everything went well, you should now see Zanthia spool up the docker
 containers with Manannan (manager) and Gwydion (docker-compose driver).
 
-Once finished, opening up the browser on [http://192.168.123.123:8080](http://192.168.123.123:8080) should show a Drupal 8 installation page.
+Once finished, opening up the browser on [http://localhost:8080](http://localhost:8080) should show a Drupal 8 installation page.
 
 Install the site this database configuration:
 
@@ -61,9 +56,9 @@ from port 8080:80 to 8081:80. Then create a branch, commit and push:
 $ git checkout -b test
 $ git add .
 $ git commit -m "Changed to another port"
-$ git push
+$ git push origin test
 ```
 
 Zanthia will now clone the master branch containers based on specs in
 manannan.yml. Once the process has finished, a clone of the previous
-installation is available in [http://192.168.123.123:8081](http://192.168.123.123:8081)
+installation is available in [http://localhost:8081](http://localhost:8081)
