@@ -1,0 +1,51 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <script src="/js/jquery-3.1.0.min.js"></script>
+        <script src="/js/zanthia.js"></script>
+        <link rel="stylesheet" type="text/css" href="/css/main.css">
+        <title>Zanthia</title>
+    </head>
+    <body>
+
+    <header>
+        <h1>Zanthia</h1>
+        <div><a href="http://github/...">github</a></div>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#repositories">Repositories</a></li>
+            <li><a href="#groups">Groups</a></li>
+            <li><a href="#users">Users</a></li>
+        </ul>
+    </nav>
+
+    <section>
+        <h2>Repositories</h2>
+        <select disabled id="repositories"><option>Loading...</option></select>
+        <br/>
+        <select disabled multiple id="users"></select><br/>
+        <textarea id="user"></textarea>
+    </section>
+<!--
+    <select id="user">
+    {% for user in users %}
+        <option id='{{ user.name }}'>{{ user.name }}</option>
+    {% endfor %}
+    </select>
+
+    <h2>Groups</h2>
+    {% for row in groups %}
+    {{ row }}
+    <br/>
+    {% endfor %}
+-->
+    <h2>Config</h2>
+    <pre>
+    {{ config }}
+    </pre>
+
+    </body>
+</html>

@@ -2,8 +2,8 @@
 
 version: '2'
 services:
-  listener:
-    build: docker/listener
+  git:
+    build: docker/git
     ports:
       - "2222:22"
     volumes:
@@ -11,6 +11,23 @@ services:
       - .:/app
     expose:
       - "2222"
+
+  rest:
+    build: docker/rest
+    links:
+      - git
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock
+      - .:/app
+    # To enable "live" development of the app codebase,
+    # uncomment the line below.
+      - ./docker/rest/app:/var/zanthia/app
+    ports:
+      - "8888:8888"
+    environment:
+      - GIT_SSH_COMMAND=ssh -i /app/git_rsa
+    # expose:
+    #   - "8888"
 
 # version: '2'
 # services:

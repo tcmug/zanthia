@@ -6,6 +6,7 @@ import tarfile
 import string
 import shutil
 import yaml
+import re
 
 from DockerCompose import DockerComposeDriver
 
@@ -52,8 +53,11 @@ class BranchContainer:
             'ZANTHIA_BUILDS_DIR',
             '/var/git/zanthia/'
         )
-        # s.path.dirname(os.path.abspath(__file__)) + "/../builds/")
+
         self.remote_location = os.getcwd()
+
+        self.repository_name = self.remote_location.split("/")[-1]
+        self.repository_name = re.sub(r".git$", "", self.repository_name)
 
         if branch_name is None:
 
@@ -84,8 +88,6 @@ class BranchContainer:
         # But, if the branch does not exist yet, we have to create it.
         if not self.has_data():
             self.action = 'create'
-
-        self.log("preparing the " + self.action + " spell")
 
     #
     #   Function: read_branch_yml
@@ -192,6 +194,11 @@ class BranchContainer:
     #
     def apply(self):
 
+        if not self.check():
+            return
+
+        self.log("preparing the " + self.action + " spell")
+
         # Apply the command.
         if self.action == 'create':
             self.create()
@@ -263,3 +270,6 @@ class BranchContainer:
     #
     def git(self, *args):
         return subprocess.call(['git'] + list(args))
+
+    def check(self):
+        return self.repository_name != "gitolite-admin"
