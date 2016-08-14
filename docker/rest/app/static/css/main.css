@@ -1,0 +1,96 @@
+
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+}
+
+header {
+    background-color: #FAD9FF;
+    border-bottom: 2px solid #F7BFFF;
+    padding: 0;
+    margin: 0;
+}
+
+header > h1 {
+    color: #AB74B2;
+    margin: 0;
+    padding: 10px 10px 5px 10px;
+}
+
+section {
+    max-width: 50em;
+    margin: auto;
+    color: #000;
+}
+
+section a {
+    color: #8BB263;
+    text-decoration: none;
+}
+
+textarea, select, input {
+    width: 100%;
+}
+
+nav {
+    max-width: 50em;
+    margin: auto;
+    margin-top: 10px;
+}
+
+nav > ul {
+    padding: 0;
+    margin: 0;
+    height: auto;
+    background: #FFF;
+    overflow: hidden;
+}
+
+/* #E0FFBF */
+nav > ul > li {
+    list-style-type: none;
+    margin: 10px;
+    float: left;
+    width: auto;
+    height: auto;
+}
+
+nav > ul > li > a {
+    border-radius: 10px;
+    padding: 0.5em 1em 0.3em 1em;
+    text-decoration: none;
+    color: #000;
+    float: left;
+}
+
+nav > ul > li:hover > a {
+    background-color: #FAD9FF;
+}
+
+nav > ul > li.active > a {
+    background-color: #FAD9FF;
+}
+
+nav > ul > li:last-child {
+    float: left;
+}
+
+/* TABLE */
+
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+tr:nth-child(even) {
+    background-color: #dddddd;
+}

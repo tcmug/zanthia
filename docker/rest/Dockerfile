@@ -1,7 +1,7 @@
 FROM alpine:3.3
 
 RUN apk add --no-cache sudo git python uwsgi py-pip uwsgi-router_uwsgi uwsgi-python openssh && \
-    pip install paste flask flask-assets jsmin && \
+    pip install paste flask flask-assets jsmin flask_wtf && \
     rm -rf /var/cache/apk/*
 
 RUN mkdir /var/zanthia && \

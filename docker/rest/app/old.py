@@ -4,7 +4,7 @@ from jinja2 import Template, Environment, FileSystemLoader
 
 from flask_wtf import Form
 from wtforms import StringField, PasswordField, SelectField, SubmitField
-from wtforms.validators import DataRequired, Email, Regexp
+from wtforms.validators import DataRequired, Email
 from wtforms.widgets import TextArea
 
 import os
@@ -16,21 +16,10 @@ app.config['SECRET_KEY'] = 'AAABBBBAAAA';
 import Zanthia
 
 
-class NewUserForm(Form):
+class UserForm(Form):
+    name = StringField('Name', validators=[DataRequired()])
+    pubkey = StringField('Public key', widget=TextArea(), validators=[DataRequired()])
 #    select = SelectField('Something', choices=[('hello', 'abba'), ('hello', 'cell')])
-    name = StringField('Name',
-        validators=[
-            DataRequired(),
-            Regexp('^\w+$', message="Username must contain only letters numbers or underscore"),
-        ]
-    )
-    pubkey_tag = StringField('Tag', validators=[DataRequired(),Regexp('^\w+$', message="Username must contain only letters numbers or underscore")])
-    pubkey = StringField('Public key', widget=TextArea(), validators=[DataRequired()])
-    submit = SubmitField('Save')
-
-class AddKeyForm(Form):
-    pubkey_tag = StringField('Tag', validators=[DataRequired(),Regexp('^\w+$', message="Username must contain only letters numbers or underscore")])
-    pubkey = StringField('Public key', widget=TextArea(), validators=[DataRequired()])
     submit = SubmitField('Save')
 
 
@@ -45,49 +34,29 @@ def default_context():
 
 @app.route('/users', methods=["GET", "POST"])
 @app.route('/users/<user>', methods=["GET", "POST"])
-@app.route('/users/<user>/<func>', methods=["GET", "POST"])
-def users_page(user=False, func='list'):
+def users_page(user=False):
 
     git = Zanthia.Gitolite()
 
     users = git.get_users()
 
+    if user:
+        user = users[user]
+
+    form = UserForm(obj=user)
+
+    if form.validate_on_submit():
+        form.populate_obj(user)
+        return redirect(url_for('users_page'))
+
     context = default_context()
 
-    if user:
-
-        # This is crap code.
-
-        if user == 'new':
-            user = Zanthia.GitoliteUser('')
-            func = 'new'
-        else:
-            user = users[user]
-            if func == 'list':
-                func = 'edit'
-
-        form = False
-
-        if func == 'new':
-            form = NewUserForm(obj=user)
-        elif func == 'add':
-            form = AddKeyForm(obj=user)
-        else:
-            abort(404, func)
-
-        if form.validate_on_submit():
-
-            form.populate_obj(user)
-            user.save()
-
-            return redirect(url_for('users_page'))
-
-        context['form'] = form
-        context['user'] = user
-
-    context['func'] = func
+    context['form'] = form
     context['config'] = git.get_config()
-    context['users'] = sorted(users.items())
+    context['repositories'] = git.get_repositories()
+    context['groups'] = git.get_groups()
+    context['users'] = users
+    context['user'] = user
 
     return render_template('pages/users.html', **context)
 
@@ -116,6 +85,41 @@ def root(page='repositories'):
 
     return render_template("pages/%s.html" % (page), **context)
 
+
+
+@app.route('/ajax/repositories')
+def repositories():
+    git = Zanthia.Gitolite()
+    list = []
+    for x in git.get_repositories():
+        list.append(x.name)
+    return jsonify(list)
+
+
+@app.route('/ajax/repository/<repository>')
+def repository(repository):
+    git = Zanthia.Gitolite()
+    list = [ 'blah' ]
+    return jsonify(list)
+
+
+@app.route('/ajax/user/<user>')
+def user(user):
+    git = Zanthia.Gitolite()
+    list = []
+    for x in git.get_groups():
+        list.append(x.name)
+    list.append(user)
+    return jsonify(list)
+
+
+@app.route('/ajax/groups')
+def groups():
+    git = Zanthia.Gitolite()
+    list = []
+    for x in git.get_groups():
+        list.append(x.name)
+    return jsonify(list)
 
 
 @app.route('/js/<path:path>')

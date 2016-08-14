@@ -11,23 +11,21 @@
 
     <header>
         <h1>Zanthia</h1>
-        <div><a href="http://github/...">github</a></div>
     </header>
 
     <nav>
         <ul>
-            <li><a href="#repositories">Repositories</a></li>
-            <li><a href="#groups">Groups</a></li>
-            <li><a href="#users">Users</a></li>
+        {% for item in mainnav %}
+            <li{% if page == item.page %} class="active"{% endif %}><a href="/{{ item.page }}">{{ item.name }}</a></li>
+        {% endfor %}
         </ul>
     </nav>
 
     <section>
-        <h2>Repositories</h2>
-        <select disabled id="repositories"><option>Loading...</option></select>
-        <br/>
-        <select disabled multiple id="users"></select><br/>
-        <textarea id="user"></textarea>
+    {% block content %}
+        {% set template = 'pages/' + page + '.html' %}
+        {% include template %}
+    {% endblock %}
     </section>
 <!--
     <select id="user">
@@ -46,6 +44,5 @@
     <pre>
     {{ config }}
     </pre>
-
     </body>
 </html>

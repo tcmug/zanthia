@@ -21,11 +21,22 @@ def shell_exec(params, capture = False):
 
 
 class GitoliteUser():
-    def __init__(self, init):
-        splitted = init.split("=")
-        map(str.strip, splitted)
-        self.name = splitted[1]
-        self.access = splitted[0]
+    def __init__(self, name):
+        self.name = name
+        self.keyfiles = []
+        self.pubkey = ''
+
+    def save(self):
+        if self.pubkey != '':
+            dir = "gitolite-admin/keydir/" + self.pubkey_tag
+            if not os.path.exists(dir):
+                os.makedirs(dir)
+            file_name = dir + '/' + self.name + '.pub';
+            with open(file_name, 'w') as f:
+                f.write(self.pubkey)
+
+    def add_key(self, keyfile):
+        self.keyfiles.append(keyfile)
 
     def __str__(self):
         return "    %s %s" % (self.access, self.name)
@@ -52,17 +63,17 @@ class GitoliteRepository():
     def __init__(self, init):
         self.name = init.replace('repo ', '')
         self.name = self.name.replace('\n', '')
-        self.users = []
+        self.access = {}
 
     def parse_user(self, init):
-        user = GitoliteUser(init)
-        self.users.append(user)
-        return user
+        splitted = init.split("=")
+        map(str.strip, splitted)
+        self.access[splitted[1]] = splitted[0]
 
     def __str__(self):
-        users_string = '\n'.join(str(x) for x in self.users)
+        users_string = '';
+        # \n'.join(str(x) for x in self.users)
         return self.name + users_string
-
 
 
 class Gitolite():
@@ -75,17 +86,24 @@ class Gitolite():
                 "gitolite@git:gitolite-admin"
             ])
 
-        prev_dir = os.getcwd()
-        os.chdir("gitolite-admin")
-        shell_exec([
-            "git",
-            "pull"
-        ])
-        os.chdir(prev_dir)
+        # prev_dir = os.getcwd()
+        # os.chdir("gitolite-admin")
+        # shell_exec([
+        #    "git",
+        #    "pull"
+        # ])
+        # os.chdir(prev_dir)
 
         self.repos = []
         self.groups = []
-        self.users = []
+        self.users = {}
+
+        keydir = 'gitolite-admin/keydir';
+        for path, subdirs, files in os.walk(keydir):
+            for name in files:
+                keyfile = os.path.join(path, name)
+                self._parse_keyfile(keyfile)
+
         repo = False
         with open('gitolite-admin/conf/gitolite.conf', 'r') as file:
             for line in file.readlines():
@@ -96,8 +114,20 @@ class Gitolite():
                     group = GitoliteGroup(init=line)
                     self.groups.append(group)
                 elif "=" in line:
-                    user = repo.parse_user(init=line)
-                    self.users.append(user)
+                    repo.parse_user(line)
+
+
+    def _parse_keyfile(self, keyfile):
+        head, tail = os.path.split(keyfile)
+        name = os.path.splitext(tail)[0]
+        if name in self.users:
+            user = self.users[name]
+        else:
+            user = GitoliteUser(name)
+            self.users[name] = user
+        user.add_key(keyfile)
+
+
 
     def get_repositories(self):
         return self.repos
