@@ -20,63 +20,10 @@ def shell_exec(params, capture = False):
     return retval
 
 
-class GitoliteUser():
-    def __init__(self, name):
-        self.name = name
-        self.keyfiles = []
-        self.pubkey = ''
-
-    def save(self):
-        if self.pubkey != '':
-            dir = "gitolite-admin/keydir/" + self.pubkey_tag
-            if not os.path.exists(dir):
-                os.makedirs(dir)
-            file_name = dir + '/' + self.name + '.pub';
-            with open(file_name, 'w') as f:
-                f.write(self.pubkey)
-
-    def add_key(self, keyfile):
-        self.keyfiles.append(keyfile)
-
-    def __str__(self):
-        return "    %s %s" % (self.access, self.name)
+from Gitolite import *
 
 
-
-class GitoliteGroup():
-    def __init__(self, init):
-        splitted = init.split("=")
-        map(str.strip, splitted)
-        self.name = splitted[0]
-        self.users = re.findall(r'\S+', splitted[1])
-        map(str.strip, self.users)
-
-    def get_users(self):
-        return self.users
-
-    def __str__(self):
-        return "%s = %s" % (self.name, " ".join(self.users))
-
-
-
-class GitoliteRepository():
-    def __init__(self, init):
-        self.name = init.replace('repo ', '')
-        self.name = self.name.replace('\n', '')
-        self.access = {}
-
-    def parse_user(self, init):
-        splitted = init.split("=")
-        map(str.strip, splitted)
-        self.access[splitted[1]] = splitted[0]
-
-    def __str__(self):
-        users_string = '';
-        # \n'.join(str(x) for x in self.users)
-        return self.name + users_string
-
-
-class Gitolite():
+class Git():
 
     def __init__(self):
         if not os.path.isdir('gitolite-admin'):
@@ -94,8 +41,8 @@ class Gitolite():
         # ])
         # os.chdir(prev_dir)
 
-        self.repos = []
-        self.groups = []
+        self.repos = {}
+        self.groups = {}
         self.users = {}
 
         keydir = 'gitolite-admin/keydir';
@@ -108,14 +55,13 @@ class Gitolite():
         with open('gitolite-admin/conf/gitolite.conf', 'r') as file:
             for line in file.readlines():
                 if line.startswith("repo"):
-                    repo = GitoliteRepository(init=line)
-                    self.repos.append(repo)
+                    repo = Gitolite.Repository(init=line)
+                    self.add_repo(repo)
                 if line.startswith("@"):
-                    group = GitoliteGroup(init=line)
-                    self.groups.append(group)
+                    group = Gitolite.Group(init=line)
+                    self.add_group(group)
                 elif "=" in line:
                     repo.parse_user(line)
-
 
     def _parse_keyfile(self, keyfile):
         head, tail = os.path.split(keyfile)
@@ -123,23 +69,39 @@ class Gitolite():
         if name in self.users:
             user = self.users[name]
         else:
-            user = GitoliteUser(name)
+            user = Gitolite.User(name)
             self.users[name] = user
-        user.add_key(keyfile)
-
-
+        user.add_key_file(keyfile)
 
     def get_repositories(self):
-        return self.repos
+        return self.repos.values()
 
     def get_groups(self):
-        return self.groups
+        return self.groups.values()
 
     def get_users(self):
-        return self.users
+        return self.users.values()
+
+
+
+    def add_group(self, group):
+        self.groups[group.name] = group
+
+    def delete_group(self, group_name):
+        del self.groups[group_name]
+
+
+
+    def add_repo(self, repo):
+        self.repos[repo.name] = repo
+
+    # def delete_repo(self, repo):
+    #   TODO: this needs some trickery as gitolite does physically delete.
+
+    def save(self):
+        with open('gitolite-admin/conf/gitolite.conf', 'w') as file:
+            file.write(self.get_config())
 
     def get_config(self):
-        return "\n".join(str(x) for x in self.groups) + "\n###\n" + "\n".join(str(x) for x in self.repos)
-
-
+        return "\n".join(str(x) for x in self.get_groups()) + "\n\n" + "\n".join(str(x) for x in self.get_repositories())
 

@@ -1,127 +1,204 @@
 
-from flask import Flask, abort, jsonify, request, make_response, render_template, redirect, url_for
-from jinja2 import Template, Environment, FileSystemLoader
-
-from flask_wtf import Form
-from wtforms import StringField, PasswordField, SelectField, SubmitField
-from wtforms.validators import DataRequired, Email, Regexp
-from wtforms.widgets import TextArea
-
-import os
+from flask import Flask, jsonify, request
+from flask_digest import Stomach
 
 app = Flask(__name__, static_folder='static', static_url_path='')
 app.debug = True
-app.config['SECRET_KEY'] = 'AAABBBBAAAA';
+app.config['SECRET_KEY'] = 'AAABBBBAAAA'
+stomach = Stomach('Zanthia')
 
 import Zanthia
+import re
+
+rest_users = {}
 
 
-class NewUserForm(Form):
-#    select = SelectField('Something', choices=[('hello', 'abba'), ('hello', 'cell')])
-    name = StringField('Name',
-        validators=[
-            DataRequired(),
-            Regexp('^\w+$', message="Username must contain only letters numbers or underscore"),
-        ]
-    )
-    pubkey_tag = StringField('Tag', validators=[DataRequired(),Regexp('^\w+$', message="Username must contain only letters numbers or underscore")])
-    pubkey = StringField('Public key', widget=TextArea(), validators=[DataRequired()])
-    submit = SubmitField('Save')
-
-class AddKeyForm(Form):
-    pubkey_tag = StringField('Tag', validators=[DataRequired(),Regexp('^\w+$', message="Username must contain only letters numbers or underscore")])
-    pubkey = StringField('Public key', widget=TextArea(), validators=[DataRequired()])
-    submit = SubmitField('Save')
+@stomach.register
+def add_user(username, password):
+    rest_users[username] = password
 
 
-def default_context():
-    return {
-        'mainnav': [
-            { 'page': 'repositories', 'name': 'Repositories' },
-            { 'page': 'groups', 'name': 'Groups' },
-            { 'page': 'users', 'name': 'Users' }
-        ]
-    }
+@stomach.access
+def get_pw(username):
+    if username in rest_users:
+        return rest_users[username]
+    return None
 
-@app.route('/users', methods=["GET", "POST"])
-@app.route('/users/<user>', methods=["GET", "POST"])
-@app.route('/users/<user>/<func>', methods=["GET", "POST"])
-def users_page(user=False, func='list'):
 
-    git = Zanthia.Gitolite()
+add_user("zanthia", "password")
 
-    users = git.get_users()
+re_name = re.compile('^\w+$')
+re_group_name = re.compile('^@\w+$')
+re_tag = re.compile('^\*|\w+$')
 
-    context = default_context()
 
-    if user:
-
-        # This is crap code.
-
-        if user == 'new':
-            user = Zanthia.GitoliteUser('')
-            func = 'new'
-        else:
-            user = users[user]
-            if func == 'list':
-                func = 'edit'
-
-        form = False
-
-        if func == 'new':
-            form = NewUserForm(obj=user)
-        elif func == 'add':
-            form = AddKeyForm(obj=user)
-        else:
-            abort(404, func)
-
-        if form.validate_on_submit():
-
-            form.populate_obj(user)
-            user.save()
-
-            return redirect(url_for('users_page'))
-
-        context['form'] = form
-        context['user'] = user
-
-    context['func'] = func
-    context['config'] = git.get_config()
-    context['users'] = sorted(users.items())
-
-    return render_template('pages/users.html', **context)
+def validate_request_object(obj, reference):
+    for key, pattern in reference.iteritems():
+        if type(obj[key]) == unicode and not pattern.match(obj[key]):
+            return False
+    return True
 
 
 @app.route('/')
-@app.route('/<page>')
-def root(page='repositories'):
-
-    if page not in ['repositories', 'groups']:
-        abort(404)
-
-    git = Zanthia.Gitolite()
-
-    context = {
-        'config': git.get_config(),
-        'repositories': git.get_repositories(),
-        'groups': git.get_groups(),
-        'users': git.get_users(),
-        'page': page,
-        'mainnav': [
-            { 'page': 'repositories', 'name': 'Repositories' },
-            { 'page': 'groups', 'name': 'Groups' },
-            { 'page': 'users', 'name': 'Users' }
+@stomach.protect
+def root():
+    print request.headers
+    return jsonify({
+        'result': [
+            '/repositories',
+            '/groups',
+            '/users'
         ]
+    })
+
+
+@app.route('/repositories/', methods=['GET', 'PUT', 'DELETE'])
+@stomach.protect
+def repositories():
+
+    response = {
+        'status': 'ok',
     }
 
-    return render_template("pages/%s.html" % (page), **context)
+    if request.method == 'GET':
+
+        git = Zanthia.Git()
+        result = []
+        for repo in git.get_repositories():
+            result.append({
+                'name': repo.name,
+                'access': repo.access,
+            })
+        return jsonify({
+            'result': result
+        })
+
+    elif request.method == 'PUT':
+
+        git = Zanthia.Git()
+        repo_data = request.get_json(silent=True)
+
+        if validate_request_object(repo_data, { 'name': re_name }):
+            new_repository = Zanthia.Repository(repo_data)
+            git.add_repo(new_repository)
+            git.save()
+        else:
+            response['status'] = 'error'
+            response['message'] = 'malformed object'
+
+    return jsonify(response)
+
+
+@app.route('/groups/', methods=['GET', 'PUT', 'DELETE'])
+@stomach.protect
+def groups():
+    response = {
+        'status': 'ok',
+    }
+
+    if request.method == 'GET':
+
+        git = Zanthia.Git()
+        result = []
+        for group in git.get_groups():
+            result.append({
+                'name': group.name,
+                'users': group.users
+            })
+
+        return jsonify({
+            'result': result
+        })
+
+    elif request.method == 'PUT':
+
+        git = Zanthia.Git()
+        group_data = request.get_json(silent=True)
+
+        if validate_request_object(group_data, { 'name': re_group_name }):
+
+            new_group = Zanthia.Group(group_data)
+            git.add_group(new_group)
+            git.save()
+
+        else:
+            response['status'] = 'error'
+            response['message'] = 'malformed object'
+
+    elif request.method == 'DELETE':
+
+        git = Zanthia.Git()
+        group_data = request.get_json(silent=True)
+
+        if validate_request_object(group_data, { 'name': re_group_name }):
+
+            git.delete_group(group_data['name'])
+            git.save()
+
+        else:
+            response['status'] = 'error'
+            response['message'] = 'malformed object'
+
+    else:
+        response.status = 'error'
+
+    return jsonify(response)
 
 
 
-@app.route('/js/<path:path>')
-def static_proxy(path):
-    # send_static_file will guess the correct MIME type
-    return app.send_static_file(os.path.join('js', path))
+@app.route('/users/', methods=['GET', 'PUT', 'DELETE'])
+@stomach.protect
+def users():
+
+    response = {
+        'status': 'ok',
+    }
+
+    if request.method == 'GET':
+
+        git = Zanthia.Git()
+        result = []
+
+        for user in git.get_users():
+
+            result.append({
+                'name': user.name,
+                'keys': user.keys
+            })
+
+        response['result'] = result
+
+    elif request.method == 'PUT':
+
+        git = Zanthia.Git()
+        user_data = request.get_json(silent=True)
+        if validate_request_object(user_data, { 'name': re_name, 'tag': re_tag }):
+            new_user = Zanthia.User(user_data['name'])
+            new_user.add_key(user_data['tag'], user_data['key'])
+            new_user.save()
+            response['status'] = 'ok'
+        else:
+            response['status'] = 'error'
+            response['message'] = 'malformed object'
+
+    elif request.method == 'DELETE':
+
+        git = Zanthia.Git()
+        user_data = request.get_json(silent=True)
+        if 'name' in user_data and 'tag' in user_data:
+            new_user = Zanthia.User(user_data['name'])
+            new_user.delete_key(user_data['tag'])
+            new_user.save()
+            response['status'] = 'ok'
+        else:
+            response['status'] = 'error'
+            response['message'] = 'malformed object'
+
+    else:
+        response.status = 'error'
+
+    return jsonify(response)
+
 
 
 if __name__ == '__main__':
