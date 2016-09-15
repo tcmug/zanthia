@@ -9,5 +9,6 @@ local_test
 id_rsa
 .vagrant
 *.pyc
+.DS_Store
 testing
 git_rsa
