@@ -1,0 +1,23 @@
+
+<VirtualHost *:80>
+
+    ProxyPreserveHost On
+    ProxyPass / {{ url }}
+    ProxyPassReverse / {{ url }}
+    ServerName {{ servername }}
+
+</VirtualHost>
+
+<VirtualHost *:443>
+
+    SSLEngine on
+    SSLCertificateFile /etc/apache2/crt/server.crt
+    SSLCertificateKeyFile /etc/apache2/crt/server.key
+
+    ProxyPreserveHost On
+    ProxyPass / {{ url }}
+    ProxyPassReverse / {{ url }}
+    ServerName {{ servername }}
+
+</VirtualHost>
+

@@ -1,31 +1,28 @@
 
 from flask import Flask, jsonify, request
-from flask_digest import Stomach
+from flask_httpauth import HTTPBasicAuth
 
 app = Flask(__name__, static_folder='static', static_url_path='')
 app.debug = True
 app.config['SECRET_KEY'] = 'AAABBBBAAAA'
-stomach = Stomach('Zanthia')
 
 import Zanthia
 import re
 
-rest_users = {}
+auth = HTTPBasicAuth()
 
+auth_users = {
+    "zanthia": "password",
+    "susan": "bye"
+}
 
-@stomach.register
-def add_user(username, password):
-    rest_users[username] = password
-
-
-@stomach.access
+@auth.get_password
 def get_pw(username):
-    if username in rest_users:
-        return rest_users[username]
+    if username in auth_users:
+        return auth_users[username]
     return None
 
 
-add_user("zanthia", "password")
 
 re_name = re.compile('^\w+$')
 re_group_name = re.compile('^@\w+$')
@@ -40,9 +37,8 @@ def validate_request_object(obj, reference):
 
 
 @app.route('/')
-@stomach.protect
+@auth.login_required
 def root():
-    print request.headers
     return jsonify({
         'result': [
             '/repositories',
@@ -52,8 +48,74 @@ def root():
     })
 
 
+@app.route('/vhosts/', methods=['GET', 'PUT', 'DELETE'])
+@auth.login_required
+def proxies():
+
+    response = {
+        'status': 'ok',
+    }
+
+    vhost_path = '/etc/apache2/vhosts'
+
+    if request.method == 'GET':
+
+        from os import listdir
+        from os.path import isfile, join, splitext
+        vhosts = [splitext(f)[0] for f in listdir(vhost_path) if isfile(join(vhost_path, f))]
+
+        return jsonify({
+            'result': vhosts
+        })
+
+    elif request.method == 'PUT':
+
+        from jinja2 import Environment, FileSystemLoader
+
+        vhost_data = request.get_json(silent=True)
+
+        j2_env = Environment(loader=FileSystemLoader("templates"), trim_blocks=True)
+
+        content = j2_env.get_template('vhost.conf.j2').render(
+            vhost_data
+        )
+
+        response['create'] = content
+
+        with open('%s/%s.conf' % (vhost_path, vhost_data['servername']), 'w+') as file:
+
+            file.write(
+                content
+            )
+
+    return jsonify(response)
+    # if request.method == 'GET':
+
+    #     result = []
+    #     return jsonify({
+    #         'result': result
+    #     })
+
+    # elif request.method == 'PUT':
+
+
+    #     git = Zanthia.Git()
+    #     repo_data = request.get_json(silent=True)
+
+    #     if validate_request_object(repo_data, { 'name': re_name }):
+    #         new_repository = Zanthia.Repository(repo_data)
+    #         git.add_repo(new_repository)
+    #         git.save()
+    #     else:
+    #         response['status'] = 'error'
+    #         response['message'] = 'malformed object'
+
+    # return jsonify(response)
+
+
+
 @app.route('/repositories/', methods=['GET', 'PUT', 'DELETE'])
-@stomach.protect
+@auth.login_required
 def repositories():
 
     response = {
@@ -90,7 +152,7 @@ def repositories():
 
 
 @app.route('/groups/', methods=['GET', 'PUT', 'DELETE'])
-@stomach.protect
+@auth.login_required
 def groups():
     response = {
         'status': 'ok',
@@ -147,7 +209,7 @@ def groups():
 
 
 @app.route('/users/', methods=['GET', 'PUT', 'DELETE'])
-@stomach.protect
+@auth.login_required
 def users():
 
     response = {
@@ -176,6 +238,7 @@ def users():
             new_user = Zanthia.User(user_data['name'])
             new_user.add_key(user_data['tag'], user_data['key'])
             new_user.save()
+            git.save()
             response['status'] = 'ok'
         else:
             response['status'] = 'error'
@@ -189,6 +252,7 @@ def users():
             new_user = Zanthia.User(user_data['name'])
             new_user.delete_key(user_data['tag'])
             new_user.save()
+            git.save()
             response['status'] = 'ok'
         else:
             response['status'] = 'error'

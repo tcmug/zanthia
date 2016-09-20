@@ -51,7 +51,7 @@ class BranchContainer:
 
         self.builds_location = os.environ.get(
             'ZANTHIA_BUILDS_DIR',
-            '/var/git/zanthia/'
+            '/var/git/app/'
         )
 
         self.remote_location = os.getcwd()

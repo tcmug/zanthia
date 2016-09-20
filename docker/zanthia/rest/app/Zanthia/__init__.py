@@ -8,14 +8,18 @@ def shell_exec(params, capture = False):
     prev_dir = os.getcwd()
     sys.stdout.flush()
     # params.insert(0, "sudo")
+    my_env = os.environ.copy()
+    my_env["HOME"] = "/srv/rest-server/"
+    my_env["user"] = "www"
+    print my_env
     print " ".join(params)
     if capture:
-        proc = subprocess.Popen(params, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        proc = subprocess.Popen(params, stderr=subprocess.PIPE, stdout=subprocess.PIPE, env=my_env)
         retval, err = proc.communicate()
         # print(retval)
         # print(err)
     else:
-        retval = subprocess.call(params)
+        retval = subprocess.call(params, env=my_env)
         os.chdir(prev_dir)
     return retval
 
@@ -27,8 +31,7 @@ class Git():
 
     def __init__(self):
         if not os.path.isdir('gitolite-admin'):
-            shell_exec([
-                "git",
+            self._git([
                 "clone",
                 "gitolite@git:gitolite-admin"
             ])
@@ -88,7 +91,8 @@ class Git():
         self.groups[group.name] = group
 
     def delete_group(self, group_name):
-        del self.groups[group_name]
+        if group_name in self.groups:
+            del self.groups[group_name]
 
 
 
@@ -99,9 +103,23 @@ class Git():
     #   TODO: this needs some trickery as gitolite does physically delete.
 
     def save(self):
-        with open('gitolite-admin/conf/gitolite.conf', 'w') as file:
+        with open('/srv/rest-server/app/gitolite-admin/conf/gitolite.conf', 'w') as file:
             file.write(self.get_config())
+
+        prev_dir = os.getcwd()
+        os.chdir('/srv/rest-server/app/gitolite-admin')
+        self._git(['status'])
+        self._git(['add', '-A'])
+        self._git(['commit', '-m "Changes via REST."'])
+        self._git(['push', 'origin', 'master'])
+        os.chdir(prev_dir)
 
     def get_config(self):
         return "\n".join(str(x) for x in self.get_groups()) + "\n\n" + "\n".join(str(x) for x in self.get_repositories())
+
+
+    def _git(self, cmds):
+        shell_exec([
+            'git'
+        ] + cmds)
 
