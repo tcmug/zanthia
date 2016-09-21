@@ -15,5 +15,4 @@ if [ -f  /run/apache2/httpd.pid ]; then
     rm /run/apache2/httpd.pid
 fi
 
-sleep 2
 exec /usr/sbin/httpd -f /etc/apache2/httpd.conf -D FOREGROUND

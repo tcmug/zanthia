@@ -88,7 +88,7 @@ class DockerComposeDriver(DriverBase):
         for container_name, source_branch in self.settings['clone-source'].iteritems():
             if source_branch != self.branch_container.branch_name:
 
-                self.stop_container(source_branch, container_name)
+                self._stop_container(source_branch, container_name)
 
                 source_container_id = source_branch \
                     + "_" + container_name \
@@ -103,7 +103,7 @@ class DockerComposeDriver(DriverBase):
                     target_container_id
                 )
 
-                self.start_container(source_branch, container_name)
+                self._start_container(source_branch, container_name)
 
                 # self.log("Cloning finished, starting " + container_name)
                 # self.shell_exec(['docker-compose', 'start', container_name])
@@ -138,29 +138,47 @@ class DockerComposeDriver(DriverBase):
             self.log('waking up services')
             self.shell_exec([
                 'docker-compose',
+                '-p' + self._get_docker_compose_name(),
                 'up',
                 '-d'
             ])
             #  '--no-recreate'
 
 
-    def start_container(self, branch, name):
+    def _start_container(self, branch, name):
         self.log("Stopping " + branch + " " + name + "...")
         self.shell_exec([
             'docker-compose',
-            '-p' + branch,
+            '-p' + self._get_docker_compose_name(branch),
             'start',
             name
         ])
 
-    def stop_container(self, branch, name):
+
+    def _stop_container(self, branch, name):
         self.log("Stopping " + branch + " " + name + "...")
         self.shell_exec([
             'docker-compose',
-            '-p' + branch,
+            '-p' + self._get_docker_compose_name(branch),
             'stop',
             name
         ])
+
+
+    def _get_docker_compose_name(self, branch = None):
+
+        if branch is None:
+            return "%s_%s" % (
+                self.branch_container.repository_name,
+                self.branch_container.safe_branch_name
+            )
+
+        return "%s_%s" % (
+            self.branch_container.repository_name,
+            branch
+        )
+
+
 
     #
     #   Function: stop
@@ -197,6 +215,7 @@ class DockerComposeDriver(DriverBase):
             self.log('putting services to bed')
             self.shell_exec([
                 'docker-compose',
+                '-p' + self._get_docker_compose_name(),
                 'stop'
             ])
 
@@ -218,7 +237,7 @@ class DockerComposeDriver(DriverBase):
         os.chdir(self.branch_container.get_directory())
         params.insert(1, "--host=unix:///tmp/docker.sock")
         params.insert(0, "sudo")
-        # print " ".join(params)
+        print " ".join(params)
         if capture:
             proc = subprocess.Popen(params, env=self._get_environment_vars(), stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             retval, err = proc.communicate()

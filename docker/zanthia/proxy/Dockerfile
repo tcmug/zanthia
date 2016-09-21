@@ -9,6 +9,8 @@ RUN apk add --no-cache \
         python \
         py-jinja2 \
         docker \
+        supervisor \
+        inotify-tools \
         sudo && \
     rm -rf /var/cache/apk/*
 
@@ -18,11 +20,14 @@ RUN mkdir -p /run/apache2 && \
 
 ADD apache/conf.d/proxy.conf /etc/apache2/conf.d/proxy.conf
 ADD apache/conf.d/vhost.conf /etc/apache2/conf.d/vhost.conf
-ADD run.sh /srv/run.sh
+ADD watcher.sh /srv/watcher.sh
+ADD apache.sh /srv/apache.sh
+
+COPY supervisord.conf /etc/supervisord.conf
 
 VOLUME /etc/apache2/vhosts
 
 EXPOSE 80
 EXPOSE 443
 
-ENTRYPOINT ["/srv/run.sh"]
+ENTRYPOINT ["supervisord", "--nodaemon", "--configuration", "/etc/supervisord.conf"]

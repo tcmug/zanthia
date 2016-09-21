@@ -21,7 +21,7 @@ docker-compose up
 
 After the container is up and running, add the ssh key to be used:
 ```
-$ ssh-add git_rsa
+$ ssh-add shared/git_rsa
 ```
 
 Clone the testing repository:

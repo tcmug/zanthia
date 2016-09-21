@@ -51,7 +51,7 @@ class BranchContainer:
 
         self.builds_location = os.environ.get(
             'ZANTHIA_BUILDS_DIR',
-            '/var/git/app/'
+            '/var/git/app/builds/'
         )
 
         self.remote_location = os.getcwd()
@@ -83,7 +83,7 @@ class BranchContainer:
         self.branch_archive = self.builds_location + \
             self.safe_branch_name + ".tar"
 
-        self.branch_dir = self.builds_location + self.safe_branch_name
+        self.branch_dir = "%s%s_%s" % (self.builds_location, self.repository_name, self.safe_branch_name)
 
         # But, if the branch does not exist yet, we have to create it.
         if not self.has_data():

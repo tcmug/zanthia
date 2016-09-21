@@ -7,10 +7,14 @@ services:
     ports:
       - "2222:22"
     volumes:
+      - ./docker/zanthia/git/app:/var/git/app
       - /var/run/docker.sock:/tmp/docker.sock
       - ./shared:/zanthia-shared
     expose:
       - "2222"
+    environment:
+      - ZANTHIA_SERVERNAME=localhost
+      - ZANTHIA_BUILDS_DIR=/var/git/app/builds
 
   proxy:
     build: docker/zanthia/proxy

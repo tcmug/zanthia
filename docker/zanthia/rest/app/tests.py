@@ -1,8 +1,8 @@
 
 
-from requests.auth import HTTPDigestAuth
+from requests.auth import HTTPBasicAuth
 import requests
 
-url = 'http://localhost:9999/'
-response = requests.get(url, auth=HTTPDigestAuth('bob', 'dole'))
+url = 'http://rest:8888/'
+response = requests.get(url, auth=HTTPBasicAuth('zanthia', 'password'))
 print response.json()
