@@ -13,4 +13,5 @@ id_rsa
 testing
 git_rsa
 builds
+*.sublime-project
 *.sublime-workspace
