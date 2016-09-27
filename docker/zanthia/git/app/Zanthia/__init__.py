@@ -51,7 +51,7 @@ class BranchContainer:
 
         self.builds_location = os.environ.get(
             'ZANTHIA_BUILDS_DIR',
-            '/var/git/app/builds/'
+            '/var/git/app/'
         )
 
         self.remote_location = os.getcwd()
@@ -273,3 +273,5 @@ class BranchContainer:
 
     def check(self):
         return self.repository_name != "gitolite-admin"
+
+

@@ -1,6 +1,9 @@
 
 version: '2'
 
+networks:
+  zanthia:
+
 services:
   git:
     build: docker/zanthia/git
@@ -15,15 +18,17 @@ services:
     environment:
       - ZANTHIA_SERVERNAME=localhost
       - ZANTHIA_BUILDS_DIR=/var/git/app/builds
+    networks:
+      - zanthia
 
   proxy:
     build: docker/zanthia/proxy
-    volumes:
-      - /var/run/docker.sock:/tmp/docker.sock
     ports:
       - "80:80"
       - "443:443"
     restart: always
+    networks:
+      - zanthia
 
   rest:
     build: docker/zanthia/rest
@@ -35,6 +40,9 @@ services:
       - ./docker/zanthia/rest/app:/srv/rest-server/app
     volumes_from:
       - proxy:rw
+    networks:
+      - zanthia
+
     # To enable "live" development of the app codebase,
     # uncomment the line below.
 

@@ -168,12 +168,12 @@ class DockerComposeDriver(DriverBase):
     def _get_docker_compose_name(self, branch = None):
 
         if branch is None:
-            return "%s_%s" % (
+            return "zzz_%s_%s" % (
                 self.branch_container.repository_name,
                 self.branch_container.safe_branch_name
             )
 
-        return "%s_%s" % (
+        return "zzz_%s_%s" % (
             self.branch_container.repository_name,
             branch
         )
@@ -237,7 +237,6 @@ class DockerComposeDriver(DriverBase):
         os.chdir(self.branch_container.get_directory())
         params.insert(1, "--host=unix:///tmp/docker.sock")
         params.insert(0, "sudo")
-        print " ".join(params)
         if capture:
             proc = subprocess.Popen(params, env=self._get_environment_vars(), stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             retval, err = proc.communicate()

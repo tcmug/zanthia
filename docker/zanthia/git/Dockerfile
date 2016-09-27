@@ -7,7 +7,6 @@ RUN apk add --no-cache sudo git docker py-pip perl openssh python && \
 RUN echo -e "Port 22\n" >> /etc/ssh/sshd_config && \
     echo -e "PubkeyAuthentication yes\n" >> /etc/ssh/sshd_config && \
     echo -e "RSAAuthentication yes\n" >> /etc/ssh/sshd_config && \
-    echo -e "PermitUserEnvironment yes\n" >> /etc/ssh/sshd_config && \
     ssh-keygen -A && \
     mkdir -p /zanthia-shared && \
     mkdir -p /var/git && \

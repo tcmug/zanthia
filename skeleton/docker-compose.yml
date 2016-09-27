@@ -1,16 +1,23 @@
 ---
 
-drupal:
-  build: .
-  ports:
-    - "8080:80"
-  links:
-    - database
+version: '2'
 
-database:
-  environment:
-    MYSQL_USER: dbuser
-    MYSQL_PASSWORD: dbpass
-    MYSQL_DATABASE: drupal
-    MYSQL_ROOT_PASSWORD: root
-  image: mariadb:10.1.16
+networks:
+  default:
+    external:
+      name: zanthia_zanthia
+
+services:
+  drupal:
+    build: .
+    links:
+      - database
+    environment:
+      - ZANTHIA_HTTP_PORT=80
+  database:
+    environment:
+      MYSQL_USER: dbuser
+      MYSQL_PASSWORD: dbpass
+      MYSQL_DATABASE: drupal
+      MYSQL_ROOT_PASSWORD: root
+    image: mariadb:10.1.16

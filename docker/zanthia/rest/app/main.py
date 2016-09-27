@@ -48,6 +48,22 @@ def root():
     })
 
 
+
+def docker_exec(params, capture = False):
+    import subprocess
+    import os
+    import sys
+    sys.stdout.flush()
+    params.insert(1, "--host=unix:///tmp/docker.sock")
+    params.insert(0, "sudo")
+    if capture:
+        proc = subprocess.Popen(params, env=os.environ.copy(), stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        retval, err = proc.communicate()
+    else:
+        retval = subprocess.call(params)
+    return retval
+
+
 @app.route('/vhosts/', methods=['GET', 'PUT', 'DELETE'])
 @auth.login_required
 def proxies():
@@ -60,33 +76,51 @@ def proxies():
 
     if request.method == 'GET':
 
-        from os import listdir
-        from os.path import isfile, join, splitext
-        vhosts = [splitext(f)[0] for f in listdir(vhost_path) if isfile(join(vhost_path, f))]
+        from jinja2 import Environment, FileSystemLoader
+        import json
+
+        ids = str.splitlines(docker_exec(['docker', 'ps', '-q', '--filter=name=zzz'], capture = True))
+        vhosts = []
+        for container_id in ids:
+            inspect = docker_exec(['docker', 'inspect', container_id], capture = True)
+            inspect = json.loads(inspect)
+            # print inspect[0]['Config']['Env']
+            # print inspect[0]['NetworkSettings']['IPAddress']
+            # print inspect[0]['Config']['ExposedPorts']
+            print inspect[0]['Config']['Env']
+            container_env = dict(item.split("=", 1) for item in inspect[0]['Config']['Env'])
+
+            if 'ZANTHIA_HTTP_PORT' in container_env:
+                vhosts.append({
+                    'servername': "%s.localhost" % (inspect[0]['Name'][4:]),
+                    'url': "http://%s:%s/" % (
+                        inspect[0]['NetworkSettings']['Networks']['zanthia_zanthia']['IPAddress'],
+                        container_env['ZANTHIA_HTTP_PORT']
+                    )
+                });
+
+
+        config = ""
+
+        j2_env = Environment(loader=FileSystemLoader("templates"), trim_blocks=True)
+
+        for vhost in vhosts:
+            content = j2_env.get_template('vhost.conf.j2').render(vhost)
+            config = config + content
+
+        # from os import listdir
+        # from os.path import isfile, join, splitext
+        # vhosts = [splitext(f)[0] for f in listdir(vhost_path) if isfile(join(vhost_path, f))]
+        with open('%s/zanthia.conf' % (vhost_path), 'w+') as file:
+            file.write(config)
 
         return jsonify({
-            'result': vhosts
+            'result': config
         })
 
     elif request.method == 'PUT':
 
-        from jinja2 import Environment, FileSystemLoader
-
-        vhost_data = request.get_json(silent=True)
-
-        j2_env = Environment(loader=FileSystemLoader("templates"), trim_blocks=True)
-
-        content = j2_env.get_template('vhost.conf.j2').render(
-            vhost_data
-        )
-
-        response['create'] = content
-
-        with open('%s/%s.conf' % (vhost_path, vhost_data['servername']), 'w+') as file:
-
-            file.write(
-                content
-            )
+        response['message'] = 'ok'
 
     return jsonify(response)
     # if request.method == 'GET':
