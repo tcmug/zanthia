@@ -78,6 +78,7 @@ def proxies():
 
         from jinja2 import Environment, FileSystemLoader
         import json
+        import os
 
         ids = str.splitlines(docker_exec(['docker', 'ps', '-q', '--filter=name=zzz'], capture = True))
         vhosts = []
@@ -87,12 +88,11 @@ def proxies():
             # print inspect[0]['Config']['Env']
             # print inspect[0]['NetworkSettings']['IPAddress']
             # print inspect[0]['Config']['ExposedPorts']
-            print inspect[0]['Config']['Env']
             container_env = dict(item.split("=", 1) for item in inspect[0]['Config']['Env'])
 
             if 'ZANTHIA_HTTP_PORT' in container_env:
                 vhosts.append({
-                    'servername': "%s.localhost" % (inspect[0]['Name'][4:]),
+                    'servername': "%s.%s" % (inspect[0]['Name'][4:], os.getenv('ZANTHIA_SERVERNAME', 'localhost')),
                     'url': "http://%s:%s/" % (
                         inspect[0]['NetworkSettings']['Networks']['zanthia_zanthia']['IPAddress'],
                         container_env['ZANTHIA_HTTP_PORT']
