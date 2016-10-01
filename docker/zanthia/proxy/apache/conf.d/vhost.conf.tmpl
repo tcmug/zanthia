@@ -3,7 +3,7 @@ Listen 443
 
 <VirtualHost *:80>
 
-    Redirect permanent / https://{{ domain }}/
+    Redirect permanent / https://{{ ZANTHIA_SERVERNAME }}/
     ServerName {{ ZANTHIA_SERVERNAME }}
 
 </VirtualHost>
