@@ -32,7 +32,7 @@ COPY run.sh /srv/run.sh
 ADD app /srv/rest-server/app
 
 RUN echo -e "Host git\n\tStrictHostKeyChecking no\n" >> /srv/rest-server/.ssh/config
-RUN chown www:www /srv/rest-server/app
+RUN chown -R www:www /srv/rest-server/app
 RUN su www -c "git config --global user.email 'zanthia@localhost'" && \
     su www -c "git config --global user.name 'Zanthia'" && \
     mkdir -p /etc/apache2/vhosts

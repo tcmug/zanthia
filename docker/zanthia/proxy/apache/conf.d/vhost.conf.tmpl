@@ -1,0 +1,25 @@
+Listen 80
+Listen 443
+
+<VirtualHost *:80>
+
+    Redirect permanent / https://{{ domain }}/
+    ServerName {{ ZANTHIA_SERVERNAME }}
+
+</VirtualHost>
+
+<VirtualHost *:443>
+
+    SSLEngine on
+    SSLCertificateFile /etc/apache2/crt/server.crt
+    SSLCertificateKeyFile /etc/apache2/crt/server.key
+
+    ProxyPreserveHost On
+    ProxyPass / http://rest:8080/
+    ProxyPassReverse / http://rest:8080/
+    ServerName {{ ZANTHIA_SERVERNAME }}
+
+</VirtualHost>
+
+IncludeOptional /etc/apache2/vhosts/*.conf
+

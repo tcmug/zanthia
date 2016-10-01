@@ -11,8 +11,12 @@ if [ ! -f /etc/apache2/crt/server.key ]; then
     openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
 fi
 
+# Make sure no pid file exists.
 if [ -f  /run/apache2/httpd.pid ]; then
     rm /run/apache2/httpd.pid
 fi
+
+# Copy config in place.
+sed 's@{{ ZANTHIA_SERVERNAME }}@'"$ZANTHIA_SERVERNAME"'@' /etc/apache2/conf.d/vhost.conf.tmpl > /etc/apache2/conf.d/vhost.conf
 
 exec /usr/sbin/httpd -f /etc/apache2/httpd.conf -D FOREGROUND

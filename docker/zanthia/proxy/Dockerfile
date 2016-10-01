@@ -19,7 +19,7 @@ RUN mkdir -p /run/apache2 && \
     mkdir -p /etc/apache2/crt
 
 ADD apache/conf.d/proxy.conf /etc/apache2/conf.d/proxy.conf
-ADD apache/conf.d/vhost.conf /etc/apache2/conf.d/vhost.conf
+ADD apache/conf.d/vhost.conf.tmpl /etc/apache2/conf.d/vhost.conf.tmpl
 ADD watcher.sh /srv/watcher.sh
 ADD apache.sh /srv/apache.sh
 
