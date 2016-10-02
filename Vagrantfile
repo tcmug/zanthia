@@ -63,7 +63,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 	config.vm.provision "ansible" do |ansible|
 		#ansible.verbose = "vvvv"
 		ansible.inventory_path = ANSIBLE_INVENTORY
-		ansible.extra_vars = "ansible/vagrant.yml"
+		#ansible.extra_vars = "ansible/vagrant.yml"
 		ansible.playbook = "ansible/site.yml"
 		ansible.limit = "all"
 		# ansible.raw_arguments = "--check"

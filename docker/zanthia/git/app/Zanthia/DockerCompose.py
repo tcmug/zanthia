@@ -90,13 +90,8 @@ class DockerComposeDriver(DriverBase):
 
                 self._stop_container(source_branch, container_name)
 
-                source_container_id = source_branch \
-                    + "_" + container_name \
-                    + "_1"
-
-                target_container_id = self.branch_container.branch_name \
-                    + "_" \
-                    + container_name + "_1"
+                source_container_id = "%s_%s_1" % (self._get_docker_compose_name(source_branch),container_name)
+                target_container_id = "%s_%s_1" % (self._get_docker_compose_name(self.branch_container.branch_name), container_name)
 
                 self.docker_clone_volumes(
                     source_container_id,
@@ -168,12 +163,12 @@ class DockerComposeDriver(DriverBase):
     def _get_docker_compose_name(self, branch = None):
 
         if branch is None:
-            return "zzz_%s_%s" % (
+            return "zzz%s%s" % (
                 self.branch_container.repository_name,
                 self.branch_container.safe_branch_name
             )
 
-        return "zzz_%s_%s" % (
+        return "zzz%s%s" % (
             self.branch_container.repository_name,
             branch
         )
@@ -294,7 +289,7 @@ class DockerComposeDriver(DriverBase):
                 ], capture=True)
                 # docker run --volumes-from dbstore2 -v $(pwd):/backup ubuntu bash -c "cd /dbdata && tar xvf /backup/backup.tar"
         else:
-
+	    print(inspect)
             self.log("Nothing to clone from " + source_container_id + " to " + target_container_id)
 
 
