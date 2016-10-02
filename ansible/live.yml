@@ -1,0 +1,6 @@
+---
+- hosts: demosite
+  user: root
+  roles:
+   - role: docker
+   - role: zanthia

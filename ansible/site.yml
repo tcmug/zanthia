@@ -8,4 +8,5 @@
   sudo: true
   roles:
     - role: docker
-    - role: gitolite-zanthia
+
+
