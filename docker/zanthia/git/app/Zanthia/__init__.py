@@ -218,6 +218,8 @@ class BranchContainer:
             self.driver.stop()
             self.delete()
 
+        self._notify_rest()
+
     #
     #   Function: delete
     #       Delete the branch. One of the steps invoken by apply().
@@ -274,4 +276,7 @@ class BranchContainer:
     def check(self):
         return self.repository_name != "gitolite-admin"
 
-
+    # x
+    def _notify_rest(self):
+        import requests
+        requests.get('http://rest:8080/vhosts', auth=('zanthia', 'password'))

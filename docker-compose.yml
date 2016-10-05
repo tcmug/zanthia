@@ -10,7 +10,7 @@ services:
     ports:
       - "2222:22"
     volumes:
-      # - ./docker/zanthia/git/app:/var/git/app
+    #  - ./docker/zanthia/git/app:/var/git/app
       - /var/run/docker.sock:/tmp/docker.sock
       - ./shared:/zanthia-shared
     expose:
@@ -35,7 +35,7 @@ services:
     links:
       - git
     volumes:
-      # - ./docker/zanthia/rest/app:/srv/rest-server/app
+    #  - ./docker/zanthia/rest/app:/srv/rest-server/app
       - /var/run/docker.sock:/tmp/docker.sock
       - ./shared:/zanthia-shared
     env_file:

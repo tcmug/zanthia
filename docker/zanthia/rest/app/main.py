@@ -13,7 +13,7 @@ auth = HTTPBasicAuth()
 
 auth_users = {
     "zanthia": "password",
-    "susan": "bye"
+    "internal": "password"
 }
 
 @auth.get_password
@@ -48,7 +48,6 @@ def root():
     })
 
 
-
 def docker_exec(params, capture = False):
     import subprocess
     import os
@@ -64,7 +63,7 @@ def docker_exec(params, capture = False):
     return retval
 
 
-@app.route('/vhosts/', methods=['GET', 'PUT', 'DELETE'])
+@app.route('/vhosts/', methods=['GET'])
 @auth.login_required
 def proxies():
 
@@ -91,14 +90,14 @@ def proxies():
             container_env = dict(item.split("=", 1) for item in inspect[0]['Config']['Env'])
 
             if 'ZANTHIA_HTTP_PORT' in container_env:
+                servername = "%s.%s" % (inspect[0]['Name'][4:], os.getenv('ZANTHIA_SERVERNAME', 'localhost'))
                 vhosts.append({
-                    'servername': "%s.%s" % (inspect[0]['Name'][4:], os.getenv('ZANTHIA_SERVERNAME', 'localhost')),
+                    'servername': "%s" % (servername),
                     'url': "http://%s:%s/" % (
                         inspect[0]['NetworkSettings']['Networks']['zanthia_zanthia']['IPAddress'],
                         container_env['ZANTHIA_HTTP_PORT']
                     )
                 });
-
 
         config = ""
 
@@ -115,36 +114,8 @@ def proxies():
             file.write(config)
 
         return jsonify({
-            'result': config
+            'result': vhosts
         })
-
-    elif request.method == 'PUT':
-
-        response['message'] = 'ok'
-
-    return jsonify(response)
-    # if request.method == 'GET':
-
-    #     result = []
-    #     return jsonify({
-    #         'result': result
-    #     })
-
-    # elif request.method == 'PUT':
-
-
-    #     git = Zanthia.Git()
-    #     repo_data = request.get_json(silent=True)
-
-    #     if validate_request_object(repo_data, { 'name': re_name }):
-    #         new_repository = Zanthia.Repository(repo_data)
-    #         git.add_repo(new_repository)
-    #         git.save()
-    #     else:
-    #         response['status'] = 'error'
-    #         response['message'] = 'malformed object'
-
-    # return jsonify(response)
 
 
 

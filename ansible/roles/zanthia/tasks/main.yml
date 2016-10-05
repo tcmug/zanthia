@@ -1,0 +1,6 @@
+---
+
+- git: repo=https://github.com/tcmug/zanthia.git
+       dest=/srv/zanthia
+       version=dockerized
+
