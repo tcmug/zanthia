@@ -43,7 +43,8 @@ def root():
         'result': [
             '/repositories',
             '/groups',
-            '/users'
+            '/users',
+            '/vhosts'
         ]
     })
 

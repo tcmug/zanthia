@@ -13,7 +13,8 @@ RUN echo -e "Port 22\n" >> /etc/ssh/sshd_config && \
     mkdir -p /var/git/bin && \
     mkdir -p /var/git/local/hooks/common && \
     mkdir -p /var/git/app && \
-    mkdir -p /var/git/.ssh
+    mkdir -p /var/git/.ssh && \
+    mkdir -p /var/builds
 
 # Prep users
 RUN adduser -D -s /bin/sh -h /var/git gitolite && \
@@ -22,7 +23,7 @@ RUN adduser -D -s /bin/sh -h /var/git gitolite && \
     echo -e "gitolite ALL=(root) NOPASSWD: /usr/bin/docker\ngitolite ALL=(root) NOPASSWD: /usr/bin/docker-compose\n" >> /etc/sudoers
 
 RUN git clone git://github.com/sitaramc/gitolite /var/git/gitolite && \
-    chown -R gitolite:gitolite /var/git && \
+    chown -R gitolite:gitolite /var/git /var/builds && \
     su gitolite -c "/var/git/gitolite/install -to /var/git/bin"
 
 ADD app /var/git/app

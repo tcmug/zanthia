@@ -30,19 +30,20 @@ from Gitolite import *
 class Git():
 
     def __init__(self):
+
         if not os.path.isdir('gitolite-admin'):
             self._git([
                 "clone",
                 "gitolite@git:gitolite-admin"
             ])
 
-        # prev_dir = os.getcwd()
-        # os.chdir("gitolite-admin")
-        # shell_exec([
-        #    "git",
-        #    "pull"
-        # ])
-        # os.chdir(prev_dir)
+        prev_dir = os.getcwd()
+        os.chdir("gitolite-admin")
+        shell_exec([
+           "git",
+           "pull"
+        ])
+        os.chdir(prev_dir)
 
         self.repos = {}
         self.groups = {}

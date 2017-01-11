@@ -11,7 +11,7 @@ Short description:
  - The container controls host machines docker for provisioning
    configuration within git branches
 
-Demo
+Docker
 -------------
 
 At the projects root folder, run:
@@ -26,7 +26,7 @@ $ ssh-add shared/git_rsa
 
 Clone the testing repository:
 ```
-$ git clone ssh://gitolite@localhost:2222/testing
+$ git clone ssh://gitolite@localhost:22222/testing
 ```
 
 Copy the skeleton project from the src folder and commit it to the repository
@@ -62,3 +62,12 @@ $ git push origin test
 Zanthia will now clone the master branch containers based on specs in
 manannan.yml. Once the process has finished, a clone of the previous
 installation is available in [http://localhost:8081](http://localhost:8081)
+
+Vagrant
+-------------
+
+Instructions are still uncomplete, but if you know what you're doing, just run:
+
+$ vagrant up
+
+NOTE: With Vagrant, forced ssh compression cannot be used, cloning the repository might never finish.

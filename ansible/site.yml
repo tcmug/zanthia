@@ -8,5 +8,6 @@
   sudo: true
   roles:
     - role: docker
+    - role: zanthia
 
 

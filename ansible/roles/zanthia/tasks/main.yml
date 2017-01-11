@@ -1,6 +1,16 @@
 ---
 
-- git: repo=https://github.com/tcmug/zanthia.git
-       dest=/srv/zanthia
-       version=dockerized
+# - git: repo=https://github.com/tcmug/zanthia.git
+#        dest=/srv/zanthia
+#        version=dockerized
 
+
+- name: Install required apt packages
+  apt: name={{ item }} state=present
+  with_items:
+   - supervisor
+
+- name: Copy zanthia supervisor config.
+  copy: src=zanthia.conf dest=/etc/supervisor/conf.d/zanthia.conf
+  notify:
+    - restart supervisor
